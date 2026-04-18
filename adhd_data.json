@@ -8,6 +8,13 @@
       "priority": "high"
     },
     {
+      "title": "Web Dev Lab 7",
+      "date": "2026-04-19",
+      "notes": "Overview\n\nIn this lab, you will create a web application called Bet using React and Supabase. Bet is a forum built for Gen Z thrill-seekers where users can post challenges for other users. Users can take on a challenge by clicking the “Bet” button.\n\nView an exemplar of what you'll be creating in this lab here Links to an external site.!\nFeatures\nRequired Features\n\nThe user is able to perform all four CRUD operations. The user can create a new challenge, read previous challenges, update a challenge, and delete a challenge.\n\n    All submitted challenges can be read on the homepage\n    A create form allows users to submit a new challenge\n    A challenge can be updated once it has been submitted\n    A challenge can be deleted once it has been submitted\n\nScreenshot of app with base features implemented\nStretch Features\n\nThe app is able to keep track of the bet count for each challenge. When a user clicks the bet button, the bet count is updated in and saved to the database.\n\n    The site displays the total number of users who have indicated they have accepted each challenge\n\nScreenshot of app with base features implemented\n🎯 Goals\n\nBy the end of this lab you will be able to...\n\n    Setup a database for an application using Supabase\n    Perform CRUD operations to manage data for a web application",
+      "completed": false,
+      "priority": "normal"
+    },
+    {
       "title": "Game Development",
       "date": "2026-05-19",
       "notes": "Develop a 2D visual novel",
