@@ -1,0 +1,21 @@
+{
+  "tasks": [
+    {
+      "title": "Game Development",
+      "date": "2026-05-19",
+      "notes": "Develop a 2D visual novel",
+      "completed": false,
+      "priority": "high"
+    },
+    {
+      "title": "This",
+      "date": "2027-08-19",
+      "notes": "",
+      "completed": false,
+      "priority": "normal"
+    }
+  ],
+  "reminders": [],
+  "notes": [],
+  "calendar": []
+}

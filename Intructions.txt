@@ -1,0 +1,132 @@
+============================================================
+ADHD ASSISTANT – INSTALLATION & USAGE INSTRUCTIONS
+============================================================
+
+This document explains how to install all required software,
+set up the environment, and run the ADHD Assistant program
+and its automated tests.
+
+------------------------------------------------------------
+1. REQUIRED SOFTWARE
+------------------------------------------------------------
+
+You must install the following:
+
+1. Python 3.13+
+   Download from Microsoft Store or python.org
+
+2. Pip (Python package manager)
+   Usually included with Python.
+   If missing, run:
+       python -m ensurepip --default-pip
+
+3. Required Python packages
+   Install using:
+       pip install tkinter pillow requests pytest
+
+4. Ollama (for local AI summaries)
+   Download from:
+       https://ollama.com/download
+
+5. A local AI model for summaries
+   After installing Ollama, run:
+       ollama pull gemma3:4b
+
+   This model is used for generating AI summaries.
+
+------------------------------------------------------------
+2. PROJECT FILES
+------------------------------------------------------------
+
+Your project folder should contain:
+
+- adhd.py                (main application)
+- automation_test.py     (automated test suite)
+- data.json              (task storage file)
+- INSTRUCTIONS.txt       (this file)
+
+------------------------------------------------------------
+3. RUNNING THE ADHD ASSISTANT
+------------------------------------------------------------
+
+To start the program:
+
+    python adhd.py
+
+The main window will open with:
+
+- Tasks
+- Reminders
+- Notes
+- AI Summary
+- Calendar
+
+All data is saved automatically into data.json.
+
+------------------------------------------------------------
+4. USING AI SUMMARY (LOCAL OLLAMA)
+------------------------------------------------------------
+
+The AI Summary feature uses your local Ollama model.
+
+Make sure Ollama is running:
+    ollama serve
+
+Then inside the app, click:
+    AI Summary
+
+The app sends your tasks/notes to the local model
+(gemma3:4b) and displays a generated summary.
+
+------------------------------------------------------------
+5. RUNNING AUTOMATED TESTS
+------------------------------------------------------------
+
+The automated tests do NOT use your mouse.
+They run internally using pytest.
+
+To run all tests:
+
+    pytest -s
+
+You should see:
+
+    3 passed in X.XXs
+
+The tests cover:
+
+- Adding a task
+- Deleting a task
+- Opening the AI summary popup
+
+------------------------------------------------------------
+6. RESETTING DATA
+------------------------------------------------------------
+
+If you want to reset the app:
+
+1. Delete data.json
+2. Restart the program
+3. A new empty data file will be created
+
+------------------------------------------------------------
+7. TROUBLESHOOTING
+------------------------------------------------------------
+
+If pytest is not recognized:
+    Use the full path:
+    "C:\Users\<yourname>\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\Scripts\pytest.exe" -s
+
+If Ollama model fails:
+    Make sure the model exists:
+        ollama list
+
+    If missing:
+        ollama pull gemma3:4b
+
+If the app crashes:
+    Delete data.json and restart.
+
+============================================================
+END OF FILE
+============================================================
