@@ -1,18 +1,18 @@
 {
   "tasks": [
     {
+      "title": "Assignment Due",
+      "date": "2026-04-18",
+      "notes": "Write testing cases for the following:\n\n    For each of the requirements in your Requirement Tracibility Matrix (RTM), write a test case associated with that specific requirement\n    Think about 3 unit test cases, and develop an automation script for those test cases\n        Identify the test cases for which the automation test is generated\n        provide the script as a notepad or in the word\n        Provide the screen capture for the automation testing completion\n            Please save this script, at the end of the semester, this will be a part of your CI/CD pipeline during your project code submission",
+      "completed": false,
+      "priority": "high"
+    },
+    {
       "title": "Game Development",
       "date": "2026-05-19",
       "notes": "Develop a 2D visual novel",
       "completed": false,
       "priority": "high"
-    },
-    {
-      "title": "This",
-      "date": "2027-08-19",
-      "notes": "",
-      "completed": false,
-      "priority": "normal"
     }
   ],
   "reminders": [],

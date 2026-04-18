@@ -13,8 +13,9 @@ OLLAMA_MODEL = "gemma3:4b"
 # ---------- Data Layer ----------
 
 def load_data():
+    # Load the JSON file or return a default structure if missing.
     default = {
-        "tasks": [],        # list of {title, date, notes, completed, priority}
+        "tasks": [],
         "reminders": [],
         "notes": []
     }
@@ -26,12 +27,12 @@ def load_data():
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        # Auto-repair missing keys
+        # Ensure all expected keys exist.
         for key in default:
             if key not in data:
                 data[key] = default[key]
 
-        # Ensure tasks are objects with expected fields
+        # Normalize task objects to ensure consistent structure.
         fixed_tasks = []
         for t in data["tasks"]:
             if isinstance(t, dict):
@@ -43,7 +44,7 @@ def load_data():
                     "priority": t.get("priority", "normal"),
                 })
             else:
-                # old string-based task, convert
+                # Convert legacy string tasks into structured objects.
                 fixed_tasks.append({
                     "title": str(t),
                     "date": "",
@@ -59,6 +60,7 @@ def load_data():
 
 
 def save_data(data):
+    # Write the current data structure to disk.
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -66,6 +68,7 @@ def save_data(data):
 # ---------- AI via Ollama (gemma3:4b) ----------
 
 def generate_ai_summary(prompt: str) -> str:
+    # Send a prompt to the local Ollama model and return the generated text.
     try:
         response = requests.post(
             OLLAMA_URL,
@@ -85,7 +88,11 @@ def generate_ai_summary(prompt: str) -> str:
 
 # ---------- UI Helpers ----------
 
-def show_list_popup(root, title, items, on_add=None, on_delete=None, on_edit=None, formatter=None):
+def show_list_popup(root, title, get_items, on_add=None, on_delete=None, on_edit=None, formatter=None):
+    """
+    This popup now receives a *function* (get_items) instead of a static list.
+    This allows the list to refresh from the latest data after add/edit/delete.
+    """
     win = tk.Toplevel(root)
     win.title(title)
     win.geometry("500x400")
@@ -94,6 +101,8 @@ def show_list_popup(root, title, items, on_add=None, on_delete=None, on_edit=Non
     listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     def render():
+        # Always fetch the latest data instead of using a stale snapshot.
+        items = get_items()
         listbox.delete(0, tk.END)
         for item in items:
             if formatter:
@@ -107,27 +116,31 @@ def show_list_popup(root, title, items, on_add=None, on_delete=None, on_edit=Non
     btn_frame.pack(fill=tk.X, padx=10, pady=5)
 
     if on_add:
-        add_btn = tk.Button(btn_frame, text="Add", command=lambda: (on_add(win), render()))
-        add_btn.pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="Add", command=lambda: (on_add(win), render())).pack(side=tk.LEFT, padx=5)
 
     if on_edit:
-        edit_btn = tk.Button(
+        tk.Button(
             btn_frame,
             text="Edit",
-            command=lambda: (on_edit(win, listbox.curselection()[0]) if listbox.curselection() else None, render())
-        )
-        edit_btn.pack(side=tk.LEFT, padx=5)
+            command=lambda: (
+                on_edit(win, listbox.curselection()[0]) if listbox.curselection() else None,
+                render()
+            )
+        ).pack(side=tk.LEFT, padx=5)
 
     if on_delete:
-        del_btn = tk.Button(
+        tk.Button(
             btn_frame,
             text="Delete",
-            command=lambda: (on_delete(win, listbox.curselection()[0]) if listbox.curselection() else None, render())
-        )
-        del_btn.pack(side=tk.LEFT, padx=5)
+            command=lambda: (
+                on_delete(win, listbox.curselection()[0]) if listbox.curselection() else None,
+                render()
+            )
+        ).pack(side=tk.LEFT, padx=5)
 
 
 def show_text_popup(root, title, initial_text=""):
+    # Simple read-only text viewer for AI summaries.
     win = tk.Toplevel(root)
     win.title(title)
     win.geometry("500x400")
@@ -141,6 +154,7 @@ def show_text_popup(root, title, initial_text=""):
 # ---------- Task Dialog ----------
 
 def task_dialog(parent, task=None):
+    # Modal dialog for creating or editing a task.
     dlg = tk.Toplevel(parent)
     dlg.title("Task" if task is None else "Edit Task")
     dlg.geometry("400x350")
@@ -177,6 +191,7 @@ def task_dialog(parent, task=None):
     result = {"ok": False, "task": None}
 
     def on_ok():
+        # Collect all fields into a structured task object.
         result["ok"] = True
         result["task"] = {
             "title": title_var.get().strip(),
@@ -221,12 +236,14 @@ class ADHDApp:
     # ----- Tasks (structured) -----
 
     def open_tasks(self):
+        # Format each task for display in the list window.
         def formatter(task):
             status = "✓" if task["completed"] else " "
             date = task["date"] or "no date"
             prio = task["priority"]
             return f"[{status}] ({prio}) {date} — {task['title']}"
 
+        # Add a new task.
         def add_task(win):
             res = task_dialog(win, None)
             if res["ok"] and res["task"]["title"]:
@@ -234,28 +251,36 @@ class ADHDApp:
                 self.data["tasks"] = self.sorted_tasks()
                 save_data(self.data)
 
+        # Edit an existing task.
         def edit_task(win, index):
-            if index is None or index < 0 or index >= len(self.data["tasks"]):
+            tasks = self.sorted_tasks()
+            if index < 0 or index >= len(tasks):
                 return
-            current = self.data["tasks"][index]
+            current = tasks[index]
             res = task_dialog(win, current)
             if res["ok"] and res["task"]["title"]:
-                self.data["tasks"][index] = res["task"]
+                # Replace the correct task in the original list.
+                original_index = self.data["tasks"].index(current)
+                self.data["tasks"][original_index] = res["task"]
                 self.data["tasks"] = self.sorted_tasks()
                 save_data(self.data)
 
+        # Delete a task.
         def delete_task(win, index):
-            if index is None or index < 0 or index >= len(self.data["tasks"]):
+            tasks = self.sorted_tasks()
+            if index < 0 or index >= len(tasks):
                 return
-            t = self.data["tasks"][index]
+            t = tasks[index]
             if messagebox.askyesno("Delete Task", f"Delete task:\n\n{t['title']}?", parent=win):
-                self.data["tasks"].pop(index)
+                original_index = self.data["tasks"].index(t)
+                self.data["tasks"].pop(original_index)
                 save_data(self.data)
 
+        # Pass a function instead of a static list so the popup always refreshes.
         show_list_popup(
             self.root,
             "Tasks",
-            self.sorted_tasks(),
+            get_items=self.sorted_tasks,
             on_add=add_task,
             on_delete=delete_task,
             on_edit=edit_task,
@@ -263,6 +288,7 @@ class ADHDApp:
         )
 
     def sorted_tasks(self):
+        # Sort tasks by date, then priority, then title.
         def sort_key(t):
             d = t.get("date") or "9999-12-31"
             return (d, t.get("priority") != "high", t.get("title"))
@@ -278,7 +304,7 @@ class ADHDApp:
                 save_data(self.data)
 
         def delete_reminder(win, index):
-            if index is None or index < 0 or index >= len(self.data["reminders"]):
+            if index < 0 or index >= len(self.data["reminders"]):
                 return
             r = self.data["reminders"][index]
             if messagebox.askyesno("Delete Reminder", f"Delete reminder:\n\n{r}?", parent=win):
@@ -288,7 +314,7 @@ class ADHDApp:
         show_list_popup(
             self.root,
             "Reminders",
-            self.data["reminders"],
+            get_items=lambda: self.data["reminders"],
             on_add=add_reminder,
             on_delete=delete_reminder
         )
@@ -303,7 +329,7 @@ class ADHDApp:
                 save_data(self.data)
 
         def delete_note(win, index):
-            if index is None or index < 0 or index >= len(self.data["notes"]):
+            if index < 0 or index >= len(self.data["notes"]):
                 return
             n = self.data["notes"][index]
             if messagebox.askyesno("Delete Note", f"Delete note:\n\n{n}?", parent=win):
@@ -313,15 +339,15 @@ class ADHDApp:
         show_list_popup(
             self.root,
             "Notes",
-            self.data["notes"],
+            get_items=lambda: self.data["notes"],
             on_add=add_note,
             on_delete=delete_note
         )
 
-    # ----- AI Summary (with Generating window) -----
+    # ----- AI Summary -----
 
     def open_ai_summary(self):
-        # Build structured task text
+        # Build a structured text block for the AI model.
         if self.data["tasks"]:
             task_lines = []
             for t in self.sorted_tasks():
